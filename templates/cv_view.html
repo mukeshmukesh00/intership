@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'My CV' if not company_view else student.name + "'s CV" }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <!-- CV Actions -->
+            {% if not company_view %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h4 class="mb-0"><i class="fas fa-file-alt"></i> My CV</h4>
+                            <p class="text-muted mb-0">Last updated: {{ cv.updated_at or 'Never' }}</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="{{ url_for('cv.edit') }}" class="btn btn-primary">
+                                <i class="fas fa-edit"></i> Edit CV
+                            </a>
+                            <a href="{{ url_for('cv.download') }}" class="btn btn-success">
+                                <i class="fas fa-download"></i> Download PDF
+                            </a>
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h4 class="mb-0"><i class="fas fa-file-alt"></i> {{ student.name }}'s CV</h4>
+                            <p class="text-muted mb-0">Last updated: {{ cv.updated_at or 'Never' }}</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="{{ url_for('company.dashboard') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- CV Content -->
+            <div class="card">
+                <div class="card-body">
+                    <!-- Header -->
+                    <div class="text-center mb-4">
+                        <h1 class="display-4 text-primary">{{ cv.full_name }}</h1>
+                        <p class="lead">{{ cv.email }}</p>
+                        {% if cv.phone %}
+                        <p><i class="fas fa-phone"></i> {{ cv.phone }}</p>
+                        {% endif %}
+                        {% if cv.address %}
+                        <p><i class="fas fa-map-marker-alt"></i> {{ cv.address }}</p>
+                        {% endif %}
+                        <div class="mt-3">
+                            {% if cv.linkedin_url %}
+                            <a href="{{ cv.linkedin_url }}" target="_blank" class="btn btn-outline-primary me-2">
+                                <i class="fab fa-linkedin"></i> LinkedIn
+                            </a>
+                            {% endif %}
+                            {% if cv.github_url %}
+                            <a href="{{ cv.github_url }}" target="_blank" class="btn btn-outline-dark">
+                                <i class="fab fa-github"></i> GitHub
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Objective -->
+                    {% if cv.objective %}
+                    <div class="mb-4">
+                        <h3 class="text-primary border-bottom pb-2">Career Objective</h3>
+                        <p class="lead">{{ cv.objective }}</p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Skills -->
+                    {% if cv.certifications %}
+                    <div class="mb-4">
+                        <h3 class="text-primary border-bottom pb-2">Skills</h3>
+                        <div class="cv-section">
+                            {% for skill in cv.certifications.split(',') %}
+                            <span class="badge bg-primary me-2 mb-2">{{ skill.strip() }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Education -->
+                    {% if cv.education or cv.education_details %}
+                    <div class="mb-4">
+                        <h3 class="text-primary border-bottom pb-2">Education</h3>
+                        {% if cv.education %}
+                        <div class="cv-section">
+                            <strong>Education Level & Field:</strong><br>
+                            {{ cv.education | replace('\n', '<br>') | safe }}
+                        </div>
+                        {% endif %}
+                        {% if cv.education_details %}
+                        <div class="cv-section">
+                            <strong>Details:</strong><br>
+                            {{ cv.education_details | replace('\n', '<br>') | safe }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Work Experience -->
+                    {% if cv.work_experience %}
+                    <div class="mb-4">
+                        <h3 class="text-primary border-bottom pb-2">Work Experience</h3>
+                        <div class="cv-section">
+                            {{ cv.work_experience | replace('\n', '<br>') | safe }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Projects -->
+                    {% if cv.projects %}
+                    <div class="mb-4">
+                        <h3 class="text-primary border-bottom pb-2">Projects</h3>
+                        <div class="cv-section">
+                            {{ cv.projects | replace('\n', '<br>') | safe }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Languages -->
+                    {% if cv.languages or cv.languages_details %}
+                    <div class="mb-4">
+                        <h3 class="text-primary border-bottom pb-2">Languages</h3>
+                        {% if cv.languages %}
+                        <div class="cv-section">
+                            <strong>Languages Spoken:</strong><br>
+                            {{ cv.languages | replace('\n', '<br>') | safe }}
+                        </div>
+                        {% endif %}
+                        {% if cv.languages_details %}
+                        <div class="cv-section">
+                            <strong>Proficiency Levels:</strong><br>
+                            {{ cv.languages_details | replace('\n', '<br>') | safe }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Interests -->
+                    {% if cv.interests %}
+                    <div class="mb-4">
+                        <h3 class="text-primary border-bottom pb-2">Interests</h3>
+                        <div class="cv-section">
+                            {{ cv.interests | replace('\n', '<br>') | safe }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Back to Dashboard -->
+            {% if not company_view %}
+            <div class="text-center mt-3">
+                <a href="{{ url_for('student.dashboard') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+{% if not company_view %}
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Delete CV</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete your CV? This action cannot be undone.</p>
+                <p class="text-danger"><strong>Warning:</strong> This will permanently remove all your CV data.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" action="{{ url_for('cv.delete') }}" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Delete CV
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

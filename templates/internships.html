@@ -1,0 +1,60 @@
+{% extends "base.html" %} {% block title %}Internships{% endblock %} {% block
+content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2>Available Internships</h2>
+  <form class="d-flex" method="GET">
+    <input
+      class="form-control me-2"
+      type="search"
+      name="search"
+      placeholder="Search internships..."
+      value="{{ search if search else '' }}"
+    />
+    <button class="btn btn-outline-primary" type="submit">Search</button>
+  </form>
+</div>
+
+{% if internships %}
+<div class="row">
+  {% for internship in internships %}
+  <div class="col-md-6 mb-4">
+    <div class="card h-100">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">{{ internship['title'] }}</h5>
+      </div>
+      <div class="card-body">
+        <p class="card-text">{{ internship['description'] }}</p>
+        <p>
+          <strong>Company:</strong> {{ internship['company_name'] }}
+        </p>
+        <p>
+          <strong>Required Skills:</strong> {{ internship['required_skills'] }}
+        </p>
+        <p class="text-muted">Posted on: {{ internship['posted_at'] }}</p>
+      </div>
+      <div class="card-footer">
+        {% if 'user_id' in session and session['role'] == 'student' %} {% if
+        internship['id'] in applied_internships %}
+        <button class="btn btn-success w-100" disabled>Already Applied</button>
+        {% else %}
+        <form
+          method="POST"
+          action="{{ url_for('student.apply_internship', internship_id=internship['id']) }}"
+        >
+          <button type="submit" class="btn btn-primary w-100">Apply Now</button>
+        </form>
+        {% endif %} {% else %}
+        <a href="{{ url_for('auth.login') }}" class="btn btn-primary w-100"
+          >Login to Apply</a
+        >
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info text-center">
+  No internships found. Try a different search term.
+</div>
+{% endif %} {% endblock %}

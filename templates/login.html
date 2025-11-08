@@ -1,0 +1,126 @@
+{% extends "base.html" %} {% block title %}Login{% endblock %} {% block content
+%}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <h3 class="mb-0">Login to Internship Recommendation system</h3>
+      </div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('auth.login') }}" id="loginForm" novalidate>
+          <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input
+              type="email"
+              class="form-control"
+              id="email"
+              name="email"
+              required
+              autocomplete="email"
+              placeholder="Enter your email"
+            />
+            <div class="invalid-feedback">
+              Please provide a valid email address.
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input
+              type="password"
+              class="form-control"
+              id="password"
+              name="password"
+              required
+              autocomplete="current-password"
+              placeholder="Enter your password"
+              minlength="1"
+            />
+            <div class="invalid-feedback">
+              Please enter your password.
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Login</button>
+        </form>
+        <div class="mt-3 text-center">
+          <p>
+            Don't have an account?
+            <a href="{{ url_for('auth.register') }}">Register here</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Login form validation
+(function() {
+  'use strict';
+  
+  const form = document.getElementById('loginForm');
+  const emailInput = document.getElementById('email');
+  const passwordInput = document.getElementById('password');
+  
+  // Email validation function
+  function validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+  
+  // Real-time validation
+  emailInput.addEventListener('input', function() {
+    if (this.value.trim() === '') {
+      this.setCustomValidity('Email is required.');
+      this.classList.remove('is-valid');
+      this.classList.add('is-invalid');
+    } else if (!validateEmail(this.value)) {
+      this.setCustomValidity('Please enter a valid email address.');
+      this.classList.remove('is-valid');
+      this.classList.add('is-invalid');
+    } else {
+      this.setCustomValidity('');
+      this.classList.remove('is-invalid');
+      this.classList.add('is-valid');
+    }
+  });
+  
+  passwordInput.addEventListener('input', function() {
+    if (this.value.trim() === '') {
+      this.setCustomValidity('Password is required.');
+      this.classList.remove('is-valid');
+      this.classList.add('is-invalid');
+    } else {
+      this.setCustomValidity('');
+      this.classList.remove('is-invalid');
+      this.classList.add('is-valid');
+    }
+  });
+  
+  // Form submission validation
+  form.addEventListener('submit', function(event) {
+    if (!form.checkValidity()) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    
+    // Additional validation
+    const email = emailInput.value.trim();
+    const password = passwordInput.value.trim();
+    
+    if (!email || !validateEmail(email)) {
+      emailInput.classList.add('is-invalid');
+      event.preventDefault();
+      return false;
+    }
+    
+    if (!password || password.length === 0) {
+      passwordInput.classList.add('is-invalid');
+      event.preventDefault();
+      return false;
+    }
+    
+    form.classList.add('was-validated');
+  }, false);
+})();
+</script>
+{% endblock %}

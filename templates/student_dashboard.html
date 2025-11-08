@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Dashboard - Internship Recommendation system</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+      body {
+        background-color: #f8f9fa;
+      }
+      .dashboard-header {
+        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+      }
+      .card {
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s;
+        margin-bottom: 1.5rem;
+      }
+      .card:hover {
+        transform: translateY(-5px);
+      }
+      .badge-pending {
+        background-color: #ffc107;
+      }
+      .badge-accepted {
+        background-color: #198754;
+      }
+      .badge-rejected {
+        background-color: #dc3545;
+      }
+      .skill-tag {
+        background-color: #e9ecef;
+        border-radius: 20px;
+        padding: 3px 10px;
+        margin: 3px;
+        display: inline-block;
+        font-size: 0.85rem;
+      }
+      .similarity-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+      }
+      .internship-details {
+        transition: all 0.3s ease;
+        overflow: hidden;
+      }
+      .view-details-btn {
+        transition: all 0.3s ease;
+      }
+      .view-details-btn.expanded {
+        background-color: #dc3545;
+        border-color: #dc3545;
+        color: white;
+      }
+      .skill-tags .badge {
+        font-size: 0.75rem;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <div class="container">
+        <a class="navbar-brand" href="{{ url_for('main.home') }}">Internship Recommendation system</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('student.profile') }}">Profile</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('cv.view') }}">My CV</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('main.internships') }}">Internships</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+      <div class="container text-center">
+        <h1>Welcome, {{ session.name }}!</h1>
+        <p class="lead">Your Student Dashboard</p>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="row">
+        <!-- Left Column - Profile & Applications -->
+        <div class="col-lg-4">
+          <!-- Profile Summary -->
+          <div class="card">
+            <div class="card-header bg-primary text-white">
+              <h5 class="mb-0">Your Profile</h5>
+            </div>
+            <div class="card-body">
+              {% if cv %}
+              <p>
+                <strong>Skills:</strong><br />
+                {% if cv.certifications %}
+                  {% for skill in cv.certifications.split(',') %}
+                  <span class="skill-tag">{{ skill.strip() }}</span>
+                  {% endfor %}
+                {% else %}
+                  <span class="text-muted">No skills listed</span>
+                {% endif %}
+              </p>
+              <p><strong>Education:</strong> {{ cv.education or 'Not specified' }}</p>
+              <p><strong>Experience:</strong> {{ cv.work_experience[:100] + '...' if cv.work_experience and cv.work_experience|length > 100 else (cv.work_experience or 'Not specified') }}</p>
+              <div class="mt-2">
+                <small class="text-muted"><i class="fas fa-sync-alt"></i> Skills synced from CV</small>
+              </div>
+              {% elif profile %}
+              <p>
+                <strong>Skills:</strong><br />
+                {% if profile.skills %}
+                  {% for skill in profile.skills.split(',') %}
+                  <span class="skill-tag">{{ skill.strip() }}</span>
+                  {% endfor %}
+                {% else %}
+                  <span class="text-muted">No skills listed</span>
+                {% endif %}
+              </p>
+              <p><strong>Education:</strong> {{ profile.education or 'Not specified' }}</p>
+              <p><strong>Experience:</strong> {{ profile.experience or 'Not specified' }}</p>
+              <div class="alert alert-warning mt-2 p-2">
+                <small><i class="fas fa-info-circle"></i> Create a CV to sync your skills automatically</small>
+              </div>
+              {% else %}
+              <p>Create your CV to get better recommendations</p>
+              {% endif %}
+              <a href="{{ url_for('cv.edit') if cv else url_for('cv.create') }}" class="btn btn-outline-success btn-sm"
+                >{% if cv %}Edit CV{% else %}Create CV{% endif %}</a
+              >
+            </div>
+          </div>
+
+          <!-- CV Management -->
+          <div class="card">
+            <div class="card-header bg-success text-white">
+              <h5 class="mb-0">My CV</h5>
+            </div>
+            <div class="card-body">
+              {% if cv %}
+              <p><strong>CV Status:</strong> <span class="badge bg-success">Complete</span></p>
+              <p><strong>Last Updated:</strong> {{ cv.updated_at.strftime('%B %d, %Y') if cv.updated_at else 'Never' }}</p>
+              <div class="d-grid gap-2">
+                <a href="{{ url_for('cv.view') }}" class="btn btn-outline-success btn-sm">View CV</a>
+                <a href="{{ url_for('cv.edit') }}" class="btn btn-outline-primary btn-sm">Edit CV</a>
+              </div>
+              {% else %}
+              <p class="text-center">You haven't created a CV yet</p>
+              <div class="d-grid">
+                <a href="{{ url_for('cv.create') }}" class="btn btn-success btn-sm">Create CV</a>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Applications -->
+          <div class="card">
+            <div class="card-header bg-info text-white">
+              <h5 class="mb-0">Your Applications</h5>
+            </div>
+            <div class="card-body">
+              {% if applications %}
+              <ul class="list-group list-group-flush">
+                {% for app in applications %}
+                <li
+                  class="list-group-item d-flex justify-content-between align-items-center"
+                >
+                  {{ app.title }}
+                  <span
+                    class="badge rounded-pill badge-{{ app.status.lower() }}"
+                  >
+                    {{ app.status }}
+                  </span>
+                  <small class="text-muted">{{ app.applied_at }}</small>
+                </li>
+                {% endfor %}
+              </ul>
+              {% else %}
+              <p class="text-center">
+                You haven't applied to any internships yet
+              </p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column - Recommendations & Messages -->
+        <div class="col-lg-8">
+          <!-- Recommendations -->
+          <div class="card">
+            <div class="card-header bg-success text-white">
+              <h5 class="mb-0">Recommended Internships</h5>
+            </div>
+            <div class="card-body">
+              {% if recommendations %}
+              <div class="row">
+                {% for rec in recommendations %}
+                <div class="col-md-6 mb-3">
+                  <div class="card h-100 position-relative">
+                    <span
+                      class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-info"
+                    >
+                      {{ rec.type }}
+                    </span>
+                    <div class="card-body">
+                      <h5 class="card-title">{{ rec.title }}</h5>
+                      <p class="card-text">
+                        <strong>Company:</strong> {{ rec.company_name }}
+                      </p>
+                      <div class="d-flex justify-content-between">
+                        <span
+                          class="badge bg-primary rounded-pill similarity-badge"
+                        >
+                          Match: {{ rec.similarity|round(2) }}
+                        </span>
+                      </div>
+                      <button
+                        class="btn btn-outline-success btn-sm mt-2 view-details-btn"
+                        data-internship-id="{{ rec.id }}"
+                        onclick="toggleInternshipDetails({{ rec.id }})"
+                      >
+                        <span class="btn-text">View Details</span>
+                        <i class="fas fa-chevron-down ms-1"></i>
+                      </button>
+                    </div>
+                    
+                    <!-- Expanded Details Section -->
+                    <div class="internship-details" id="details-{{ rec.id }}" style="display: none;">
+                      <div class="card-body border-top bg-light">
+                        <h6 class="text-primary mb-3">Internship Details</h6>
+                        <div class="row">
+                          <div class="col-12">
+                            <p><strong>Description:</strong></p>
+                            <p class="text-muted">{{ rec.description or 'No description available' }}</p>
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col-12">
+                            <p><strong>Required Skills:</strong></p>
+                            <div class="skill-tags">
+                              {% if rec.required_skills %}
+                                {% for skill in rec.required_skills.split(',') %}
+                                <span class="badge bg-secondary me-1 mb-1">{{ skill.strip() }}</span>
+                                {% endfor %}
+                              {% else %}
+                                <span class="text-muted">No specific skills required</span>
+                              {% endif %}
+                            </div>
+                          </div>
+                        </div>
+                        <div class="row mt-3">
+                          <div class="col-6">
+                            <p><strong>Posted:</strong> {{ rec.posted_at }}</p>
+                          </div>
+                          <div class="col-6">
+                            <p><strong>Match Score:</strong> {{ (rec.similarity * 100)|round(1) }}%</p>
+                          </div>
+                        </div>
+                        <div class="mt-3">
+                          <a href="{{ url_for('main.internships') }}" class="btn btn-primary btn-sm me-2">
+                            <i class="fas fa-external-link-alt"></i> View All Internships
+                          </a>
+                          <form method="POST" action="{{ url_for('student.apply_internship', internship_id=rec.id) }}" style="display: inline;">
+                            <button type="submit" class="btn btn-success btn-sm">
+                              <i class="fas fa-paper-plane"></i> Apply Now
+                            </button>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+              {% else %}
+              <p class="text-center">
+                Complete your profile to get recommendations
+              </p>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Messages -->
+          <div class="card">
+            <div class="card-header bg-warning text-dark">
+              <h5 class="mb-0">Messages</h5>
+            </div>
+            <div class="card-body">
+              {% if messages %}
+              <ul class="list-group list-group-flush">
+                {% for msg in messages %}
+                <li class="list-group-item">
+                  <div class="d-flex justify-content-between">
+                    <strong>{{ msg.sender_name }}</strong>
+                    <small class="text-muted">{{ msg.sent_at }}</small>
+                  </div>
+                  <p class="mb-1">{{ msg.content }}</p>
+                  <small class="text-muted">Regarding: {{ msg.title }}</small>
+                </li>
+                {% endfor %}
+              </ul>
+              {% else %}
+              <p class="text-center">No messages</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="bg-dark text-white text-center py-3 mt-5">
+      <div class="container">
+        <p>&copy; Internship Recommendation system. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+      // State variable to track which internship is currently selected
+      let selectedInternship = null;
+      
+      function toggleInternshipDetails(internshipId) {
+        const detailsElement = document.getElementById(`details-${internshipId}`);
+        const button = document.querySelector(`[data-internship-id="${internshipId}"]`);
+        const btnText = button.querySelector('.btn-text');
+        const chevronIcon = button.querySelector('i');
+        
+        // If this internship is already selected, hide it
+        if (selectedInternship === internshipId) {
+          detailsElement.style.display = 'none';
+          button.classList.remove('expanded');
+          btnText.textContent = 'View Details';
+          chevronIcon.className = 'fas fa-chevron-down ms-1';
+          selectedInternship = null;
+        } else {
+          // Hide any previously selected internship
+          if (selectedInternship !== null) {
+            const prevDetails = document.getElementById(`details-${selectedInternship}`);
+            const prevButton = document.querySelector(`[data-internship-id="${selectedInternship}"]`);
+            const prevBtnText = prevButton.querySelector('.btn-text');
+            const prevChevron = prevButton.querySelector('i');
+            
+            if (prevDetails) {
+              prevDetails.style.display = 'none';
+              prevButton.classList.remove('expanded');
+              prevBtnText.textContent = 'View Details';
+              prevChevron.className = 'fas fa-chevron-down ms-1';
+            }
+          }
+          
+          // Show the selected internship details
+          detailsElement.style.display = 'block';
+          button.classList.add('expanded');
+          btnText.textContent = 'Hide Details';
+          chevronIcon.className = 'fas fa-chevron-up ms-1';
+          selectedInternship = internshipId;
+          
+          // Smooth scroll to the details if needed
+          detailsElement.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'nearest' 
+          });
+        }
+      }
+      
+      // Initialize the page
+      document.addEventListener('DOMContentLoaded', function() {
+        // Add any initialization code here if needed
+        console.log('Student dashboard loaded with dynamic internship details');
+      });
+    </script>
+  </body>
+</html>

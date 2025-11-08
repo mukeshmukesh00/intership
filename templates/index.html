@@ -1,0 +1,73 @@
+{% extends "base.html" %} {% block title %}Home{% endblock %} {% block content
+%}
+<div class="hero-section bg-primary text-white text-center py-5">
+  <div class="container">
+    <h1 class="display-4">Find Your Perfect Internship</h1>
+    <p class="lead">Powered by intelligent recommendation algorithms</p>
+    <div class="mt-4">
+      {% if 'user_id' not in session %}
+      <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg me-2"
+        >Get Started</a
+      >
+      <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg"
+        >Login</a
+      >
+      {% else %}
+      <a
+        href="
+                    {% if session['role'] == 'student' %}
+                        {{ url_for('student.dashboard') }}
+                    {% elif session['role'] == 'company' %}
+                        {{ url_for('company.dashboard') }}
+                    {% elif session['role'] == 'admin' %}
+                        {{ url_for('admin.dashboard') }}
+                    {% endif %}
+                "
+        class="btn btn-light btn-lg"
+        >Go to Dashboard</a
+      >
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="features-section py-5">
+  <div class="container">
+    <div class="row text-center">
+      <div class="col-md-4 mb-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <h3 class="card-title">For Students</h3>
+            <p class="card-text">
+              Build your profile, discover internships, and get personalized
+              recommendations
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <h3 class="card-title">For Companies</h3>
+            <p class="card-text">
+              Post internships, find qualified candidates, and manage
+              applications
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <h3 class="card-title">Smart Matching</h3>
+            <p class="card-text">
+              Our AI-powered system matches students with the best internship
+              opportunities
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

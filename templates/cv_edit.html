@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Edit CV{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0"><i class="fas fa-edit"></i> Edit Your CV</h3>
+                    <p class="text-muted mb-0">Update your CV information</p>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <!-- Personal Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary border-bottom pb-2">Personal Information</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="full_name" class="form-label">Full Name *</label>
+                                <input type="text" class="form-control" id="full_name" name="full_name" value="{{ cv.full_name }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email *</label>
+                                <input type="email" class="form-control" id="email" name="email" value="{{ cv.email }}" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="phone" name="phone" value="{{ cv.phone or '' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="address" class="form-label">Address</label>
+                                <input type="text" class="form-control" id="address" name="address" value="{{ cv.address or '' }}">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="linkedin_url" class="form-label">LinkedIn URL</label>
+                                <input type="url" class="form-control" id="linkedin_url" name="linkedin_url" value="{{ cv.linkedin_url or '' }}" placeholder="https://linkedin.com/in/yourprofile">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="github_url" class="form-label">GitHub URL</label>
+                                <input type="url" class="form-control" id="github_url" name="github_url" value="{{ cv.github_url or '' }}" placeholder="https://github.com/yourusername">
+                            </div>
+                        </div>
+                        
+                        <!-- Objective -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary border-bottom pb-2 mt-4">Career Objective</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="objective" class="form-label">Professional Summary</label>
+                            <textarea class="form-control" id="objective" name="objective" rows="3" placeholder="Brief description of your career goals and what you bring to the table">{{ cv.objective or '' }}</textarea>
+                        </div>
+                        
+                        <!-- Skills -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary border-bottom pb-2 mt-4">Skills</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="search-selection-field">
+                            <label for="skills-selection" class="form-label">Technical & Professional Skills</label>
+                            <div id="skills-selection" data-name="certifications"></div>
+                            <div class="form-text">Select your key technical and professional skills. These will be used for internship matching.</div>
+                        </div>
+                        
+                        <!-- Education -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary border-bottom pb-2 mt-4">Education</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="search-selection-field">
+                            <label for="education-selection" class="form-label">Education Level and Field of Study</label>
+                            <div id="education-selection" data-name="education"></div>
+                            <div class="form-text">Select your education level and field of study. You can add custom entries.</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="education_details" class="form-label">Education Details</label>
+                            <textarea class="form-control" id="education_details" name="education_details" rows="3" placeholder="Include institution name, graduation year, GPA, honors, and any relevant academic achievements">{{ cv.education or '' }}</textarea>
+                        </div>
+                        
+                        <!-- Work Experience -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary border-bottom pb-2 mt-4">Work Experience</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="work_experience" class="form-label">Professional Experience</label>
+                            <textarea class="form-control" id="work_experience" name="work_experience" rows="4" placeholder="List your work experience including job titles, companies, dates, and key responsibilities">{{ cv.work_experience or '' }}</textarea>
+                        </div>
+                        
+                        <!-- Projects -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary border-bottom pb-2 mt-4">Projects</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="projects" class="form-label">Notable Projects</label>
+                            <textarea class="form-control" id="projects" name="projects" rows="4" placeholder="Describe your key projects, technologies used, and your role in each project">{{ cv.projects or '' }}</textarea>
+                        </div>
+                        
+                        <!-- Languages -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary border-bottom pb-2 mt-4">Languages</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="search-selection-field">
+                            <label for="languages-selection" class="form-label">Languages Spoken</label>
+                            <div id="languages-selection" data-name="languages"></div>
+                            <div class="form-text">Select languages you speak. You can add custom languages.</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="languages_details" class="form-label">Language Proficiency Details</label>
+                            <textarea class="form-control" id="languages_details" name="languages_details" rows="2" placeholder="Specify proficiency levels (e.g., Native, Fluent, Intermediate, Basic) for each language">{{ cv.languages or '' }}</textarea>
+                        </div>
+                        
+                        <!-- Interests -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary border-bottom pb-2 mt-4">Interests</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="interests" class="form-label">Personal Interests</label>
+                            <textarea class="form-control" id="interests" name="interests" rows="2" placeholder="Your hobbies, interests, and activities outside of work">{{ cv.interests or '' }}</textarea>
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <div class="row">
+                            <div class="col-12 text-center">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-save"></i> Update CV
+                                </button>
+                                <a href="{{ url_for('cv.view') }}" class="btn btn-info btn-lg ms-2">
+                                    <i class="fas fa-eye"></i> Preview CV
+                                </a>
+                                <a href="{{ url_for('student.dashboard') }}" class="btn btn-secondary btn-lg ms-2">
+                                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Populate existing data when editing
+    {% if cv %}
+        // Set skills (from certifications field)
+        {% if cv.certifications %}
+        const skillsData = "{{ cv.certifications or '' }}".split(', ').filter(item => item.trim());
+        if (skillsData.length > 0) {
+            setTimeout(() => {
+                const skillsSelection = document.getElementById('skills-selection');
+                if (skillsSelection) {
+                    const hiddenInput = skillsSelection.querySelector('input[type="hidden"]');
+                    if (hiddenInput) {
+                        hiddenInput.value = "{{ cv.certifications }}";
+                    }
+                }
+            }, 500);
+        }
+        {% endif %}
+        
+        // Set education
+        {% if cv.education %}
+        const educationData = "{{ cv.education or '' }}".split(', ').filter(item => item.trim());
+        if (educationData.length > 0) {
+            setTimeout(() => {
+                const educationSelection = document.getElementById('education-selection');
+                if (educationSelection) {
+                    const hiddenInput = educationSelection.querySelector('input[type="hidden"]');
+                    if (hiddenInput) {
+                        hiddenInput.value = "{{ cv.education }}";
+                    }
+                }
+            }, 500);
+        }
+        {% endif %}
+        
+        // Set languages
+        {% if cv.languages %}
+        const languagesData = "{{ cv.languages or '' }}".split(', ').filter(item => item.trim());
+        if (languagesData.length > 0) {
+            setTimeout(() => {
+                const languagesSelection = document.getElementById('languages-selection');
+                if (languagesSelection) {
+                    const hiddenInput = languagesSelection.querySelector('input[type="hidden"]');
+                    if (hiddenInput) {
+                        hiddenInput.value = "{{ cv.languages }}";
+                    }
+                }
+            }, 500);
+        }
+        {% endif %}
+    {% endif %}
+});
+</script>
+{% endblock %}

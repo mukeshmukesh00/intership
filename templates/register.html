@@ -1,0 +1,268 @@
+{% extends "base.html" %} {% block title %}Register{% endblock %} {% block
+content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <h3 class="mb-0">Create an Account</h3>
+      </div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('auth.register') }}" id="registerForm" novalidate>
+          <div class="mb-3">
+            <label for="name" class="form-label">Full Name</label>
+            <input 
+              type="text" 
+              class="form-control" 
+              id="name" 
+              name="name" 
+              placeholder="Enter your full name"
+              minlength="2"
+              maxlength="100"
+            />
+            <div class="invalid-feedback">
+              Name should be at least 2 characters long.
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+            <input
+              type="email"
+              class="form-control"
+              id="email"
+              name="email"
+              required
+              autocomplete="email"
+              placeholder="Enter your email"
+            />
+            <div class="invalid-feedback">
+              Please provide a valid email address.
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+            <input
+              type="password"
+              class="form-control"
+              id="password"
+              name="password"
+              required
+              autocomplete="new-password"
+              placeholder="Create a password"
+              minlength="6"
+            />
+            <div class="form-text">
+              Password must be at least 6 characters long.
+            </div>
+            <div class="invalid-feedback">
+              Password must be at least 6 characters long.
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="confirmPassword" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+            <input
+              type="password"
+              class="form-control"
+              id="confirmPassword"
+              name="confirmPassword"
+              required
+              autocomplete="new-password"
+              placeholder="Confirm your password"
+              minlength="6"
+            />
+            <div class="invalid-feedback">
+              Passwords do not match.
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="role" class="form-label">I am a <span class="text-danger">*</span></label>
+            <select class="form-select" id="role" name="role" required>
+              <option value="">Select role</option>
+              <option value="student">Student</option>
+              <option value="company">Company</option>
+            </select>
+            <div class="invalid-feedback">
+              Please select a role.
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Register</button>
+        </form>
+        <div class="mt-3 text-center">
+          <p>
+            Already have an account?
+            <a href="{{ url_for('auth.login') }}">Login here</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Registration form validation
+(function() {
+  'use strict';
+  
+  const form = document.getElementById('registerForm');
+  const nameInput = document.getElementById('name');
+  const emailInput = document.getElementById('email');
+  const passwordInput = document.getElementById('password');
+  const confirmPasswordInput = document.getElementById('confirmPassword');
+  const roleSelect = document.getElementById('role');
+  
+  // Email validation function
+  function validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+  
+  // Password strength validation
+  function validatePassword(password) {
+    return password.length >= 6;
+  }
+  
+  // Check if passwords match
+  function passwordsMatch(password, confirmPassword) {
+    return password === confirmPassword && password.length > 0;
+  }
+  
+  // Name validation
+  nameInput.addEventListener('input', function() {
+    const value = this.value.trim();
+    if (value.length > 0 && value.length < 2) {
+      this.setCustomValidity('Name should be at least 2 characters long.');
+      this.classList.remove('is-valid');
+      this.classList.add('is-invalid');
+    } else if (value.length >= 2) {
+      this.setCustomValidity('');
+      this.classList.remove('is-invalid');
+      this.classList.add('is-valid');
+    } else {
+      this.setCustomValidity('');
+      this.classList.remove('is-invalid', 'is-valid');
+    }
+  });
+  
+  // Email validation
+  emailInput.addEventListener('input', function() {
+    if (this.value.trim() === '') {
+      this.setCustomValidity('Email is required.');
+      this.classList.remove('is-valid');
+      this.classList.add('is-invalid');
+    } else if (!validateEmail(this.value)) {
+      this.setCustomValidity('Please enter a valid email address.');
+      this.classList.remove('is-valid');
+      this.classList.add('is-invalid');
+    } else {
+      this.setCustomValidity('');
+      this.classList.remove('is-invalid');
+      this.classList.add('is-valid');
+    }
+  });
+  
+  // Password validation
+  passwordInput.addEventListener('input', function() {
+    const password = this.value;
+    if (password.trim() === '') {
+      this.setCustomValidity('Password is required.');
+      this.classList.remove('is-valid');
+      this.classList.add('is-invalid');
+    } else if (!validatePassword(password)) {
+      this.setCustomValidity('Password must be at least 6 characters long.');
+      this.classList.remove('is-valid');
+      this.classList.add('is-invalid');
+    } else {
+      this.setCustomValidity('');
+      this.classList.remove('is-invalid');
+      this.classList.add('is-valid');
+      
+      // Re-check password match
+      if (confirmPasswordInput.value.length > 0) {
+        confirmPasswordInput.dispatchEvent(new Event('input'));
+      }
+    }
+  });
+  
+  // Confirm password validation
+  confirmPasswordInput.addEventListener('input', function() {
+    const password = passwordInput.value;
+    const confirmPassword = this.value;
+    
+    if (confirmPassword.trim() === '') {
+      this.setCustomValidity('Please confirm your password.');
+      this.classList.remove('is-valid');
+      this.classList.add('is-invalid');
+    } else if (!passwordsMatch(password, confirmPassword)) {
+      this.setCustomValidity('Passwords do not match.');
+      this.classList.remove('is-valid');
+      this.classList.add('is-invalid');
+    } else {
+      this.setCustomValidity('');
+      this.classList.remove('is-invalid');
+      this.classList.add('is-valid');
+    }
+  });
+  
+  // Role validation
+  roleSelect.addEventListener('change', function() {
+    if (this.value === '') {
+      this.setCustomValidity('Please select a role.');
+      this.classList.remove('is-valid');
+      this.classList.add('is-invalid');
+    } else {
+      this.setCustomValidity('');
+      this.classList.remove('is-invalid');
+      this.classList.add('is-valid');
+    }
+  });
+  
+  // Form submission validation
+  form.addEventListener('submit', function(event) {
+    event.preventDefault();
+    
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    const confirmPassword = confirmPasswordInput.value;
+    const role = roleSelect.value;
+    
+    let isValid = true;
+    
+    // Validate email
+    if (!email || !validateEmail(email)) {
+      emailInput.classList.add('is-invalid');
+      isValid = false;
+    }
+    
+    // Validate password
+    if (!password || !validatePassword(password)) {
+      passwordInput.classList.add('is-invalid');
+      isValid = false;
+    }
+    
+    // Validate password match
+    if (!passwordsMatch(password, confirmPassword)) {
+      confirmPasswordInput.classList.add('is-invalid');
+      isValid = false;
+    }
+    
+    // Validate role
+    if (!role) {
+      roleSelect.classList.add('is-invalid');
+      isValid = false;
+    }
+    
+    if (isValid) {
+      form.classList.add('was-validated');
+      form.submit();
+    } else {
+      form.classList.add('was-validated');
+      // Scroll to first invalid field
+      const firstInvalid = form.querySelector(':invalid');
+      if (firstInvalid) {
+        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        firstInvalid.focus();
+      }
+    }
+  }, false);
+})();
+</script>
+{% endblock %}

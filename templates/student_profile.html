@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Student Profile{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h3 class="mb-0"><i class="fas fa-user-edit"></i> Edit Your Profile</h3>
+        </div>
+        <div class="card-body">
+          <!-- Skills are now managed through CV -->
+          <div class="alert alert-info mb-4">
+            <h5><i class="fas fa-lightbulb"></i> Important Information</h5>
+            <p class="mb-2">
+              <strong>Skills are now synced from your CV!</strong> 
+              For better internship recommendations and matching, make sure your CV is up to date with your latest skills, education, and experience.
+            </p>
+            <p class="mb-0">
+              <a href="{{ url_for('cv.edit') if cv else url_for('cv.create') }}" class="btn btn-sm btn-success">
+                <i class="fas fa-file-alt"></i> {% if cv %}Update your CV{% else %}Create your CV{% endif %}
+              </a>
+              <a href="{{ url_for('cv.view') }}" class="btn btn-sm btn-info {% if not cv %}disabled{% endif %}">
+                <i class="fas fa-eye"></i> View CV
+              </a>
+            </p>
+          </div>
+
+          {% if cv %}
+          <!-- Display CV-synced information -->
+          <div class="card mb-4 bg-light">
+            <div class="card-body">
+              <h5 class="card-title text-success">
+                <i class="fas fa-check-circle"></i> CV Connected
+              </h5>
+              <div class="row">
+                <div class="col-md-12 mb-3">
+                  <p class="mb-1"><strong>Skills:</strong></p>
+                  {% if cv.certifications %}
+                    {% for skill in cv.certifications.split(',') %}
+                    <span class="badge bg-primary me-1 mb-1">{{ skill.strip() }}</span>
+                    {% endfor %}
+                  {% else %}
+                    <span class="text-muted">No skills listed in CV</span>
+                  {% endif %}
+                </div>
+                <div class="col-md-6">
+                  <p class="mb-1"><strong>Education:</strong></p>
+                  <p class="text-muted">{{ cv.education or 'Not specified' }}</p>
+                </div>
+                <div class="col-md-6">
+                  <p class="mb-1"><strong>Experience:</strong></p>
+                  <p class="text-muted">{{ cv.work_experience[:50] + '...' if cv.work_experience and cv.work_experience|length > 50 else (cv.work_experience or 'Not specified') }}</p>
+                </div>
+              </div>
+              <small class="text-muted">
+                <i class="fas fa-info-circle"></i> These details are automatically synced from your CV. 
+                Last updated: {{ cv.updated_at.strftime('%B %d, %Y at %I:%M %p') if cv.updated_at else 'Never' }}
+              </small>
+            </div>
+          </div>
+          {% endif %}
+
+          <form method="POST">
+            <div class="mb-3">
+              <label for="skills" class="form-label">
+                <i class="fas fa-tools"></i> Skills
+                {% if cv %}
+                <span class="badge bg-success">Synced from CV</span>
+                {% endif %}
+              </label>
+              <textarea 
+                class="form-control" 
+                id="skills" 
+                name="skills" 
+                rows="3" 
+                placeholder="Enter your skills separated by commas (e.g., Python, JavaScript, Data Analysis)"
+                {% if cv %}readonly{% endif %}
+              >{{ profile.skills if profile else '' }}</textarea>
+              {% if cv %}
+              <small class="text-muted">
+                <i class="fas fa-lock"></i> Skills are managed through your CV. 
+                <a href="{{ url_for('cv.edit') }}">Edit CV</a> to update skills.
+              </small>
+              {% else %}
+              <small class="text-muted">
+                Tip: Create a CV to automatically sync and manage your skills.
+              </small>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label for="education" class="form-label">
+                <i class="fas fa-graduation-cap"></i> Education
+                {% if cv %}
+                <span class="badge bg-success">Synced from CV</span>
+                {% endif %}
+              </label>
+              <textarea 
+                class="form-control" 
+                id="education" 
+                name="education" 
+                rows="3" 
+                placeholder="Enter your education details (e.g., Bachelor's in Computer Science)"
+                {% if cv %}readonly{% endif %}
+              >{{ profile.education if profile else '' }}</textarea>
+              {% if cv %}
+              <small class="text-muted">
+                <i class="fas fa-lock"></i> Education is managed through your CV. 
+                <a href="{{ url_for('cv.edit') }}">Edit CV</a> to update.
+              </small>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label for="experience" class="form-label">
+                <i class="fas fa-briefcase"></i> Experience
+                {% if cv %}
+                <span class="badge bg-success">Synced from CV</span>
+                {% endif %}
+              </label>
+              <textarea 
+                class="form-control" 
+                id="experience" 
+                name="experience" 
+                rows="3" 
+                placeholder="Enter your work experience"
+                {% if cv %}readonly{% endif %}
+              >{{ profile.experience if profile else '' }}</textarea>
+              {% if cv %}
+              <small class="text-muted">
+                <i class="fas fa-lock"></i> Experience is managed through your CV. 
+                <a href="{{ url_for('cv.edit') }}">Edit CV</a> to update.
+              </small>
+              {% endif %}
+            </div>
+
+            {% if not cv %}
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Save Profile
+              </button>
+              <a href="{{ url_for('cv.create') }}" class="btn btn-success">
+                <i class="fas fa-file-alt"></i> Create CV (Recommended)
+              </a>
+            </div>
+            {% else %}
+            <div class="alert alert-warning">
+              <i class="fas fa-info-circle"></i> Your profile is now managed through your CV. 
+              Make all updates directly in your <a href="{{ url_for('cv.edit') }}" class="alert-link">CV</a>.
+            </div>
+            {% endif %}
+
+            <div class="text-center mt-3">
+              <a href="{{ url_for('student.dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

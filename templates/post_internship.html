@@ -1,0 +1,52 @@
+{% extends "base.html" %} {% block title %}Post Internship{% endblock %} {%
+block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <h3 class="mb-0">Post a New Internship</h3>
+      </div>
+      <div class="card-body">
+        <form method="POST">
+          <div class="mb-3">
+            <label for="title" class="form-label">Internship Title</label>
+            <input
+              type="text"
+              class="form-control"
+              id="title"
+              name="title"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <textarea
+              class="form-control"
+              id="description"
+              name="description"
+              rows="4"
+              required
+            ></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="required_skills" class="form-label"
+              >Required Skills (comma separated)</label
+            >
+            <input
+              type="text"
+              class="form-control"
+              id="required_skills"
+              name="required_skills"
+              placeholder="Python, JavaScript, Communication"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-primary w-100">
+            Post Internship
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
