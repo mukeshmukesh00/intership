@@ -336,18 +336,120 @@ def evaluate_content_based(
     return final_results
 
 
+def collaborative_filtering_for_evaluation(user_id, cursor, excluded_applications: Set[int] = None):
+    """
+    Collaborative filtering for evaluation with train/test split support.
+    This version allows excluding certain applications (test set) from the user's history.
+    
+    Args:
+        user_id: User ID
+        cursor: Database cursor
+        excluded_applications: Set of internship IDs to exclude from user's application history
+                              (these are the test items we want to predict)
+    
+    Returns:
+        List of recommendation dictionaries
+    """
+    if excluded_applications is None:
+        excluded_applications = set()
+    
+    # Get all applications
+    cursor.execute("SELECT student_id, internship_id FROM applications")
+    all_applications = cursor.fetchall()
+    
+    # Build user-item matrix
+    user_items = {}
+    for app in all_applications:
+        student_id = app['student_id']
+        internship_id = app['internship_id']
+        if student_id not in user_items:
+            user_items[student_id] = set()
+        user_items[student_id].add(internship_id)
+    
+    # For the target user, exclude test set applications from their history
+    # This simulates a train/test split
+    current_user_apps = user_items.get(user_id, set()) - excluded_applications
+    
+    # If user has no applications left after excluding test set, skip
+    if not current_user_apps:
+        return []
+    
+    # Find similar students based on Jaccard similarity (using training set only)
+    similar_students = []
+    
+    for student_id, apps in user_items.items():
+        if student_id == user_id:
+            continue
+            
+        intersection = len(current_user_apps & apps)
+        union = len(current_user_apps | apps)
+        similarity = intersection / union if union > 0 else 0
+        
+        if similarity > 0:
+            similar_students.append((student_id, similarity))
+    
+    # Sort by similarity
+    similar_students.sort(key=lambda x: x[1], reverse=True)
+    
+    # Get top internships from similar students
+    recommendations = []
+    seen_internships = set(current_user_apps)  # Exclude internships in training set
+    
+    for student_id, similarity in similar_students[:3]:  # Top 3 similar students
+        for internship_id in user_items[student_id]:
+            if internship_id not in seen_internships:
+                cursor.execute("SELECT * FROM internships WHERE id=?", (internship_id,))
+                internship = cursor.fetchone()
+                if internship:
+                    # Get company information
+                    cursor.execute("SELECT name FROM users WHERE id=?", (internship['company_id'],))
+                    company = cursor.fetchone()
+                    company_name = company['name'] if company else 'Unknown Company'
+                    
+                    recommendations.append({
+                        'id': internship['id'],
+                        'title': internship['title'],
+                        'description': internship['description'],
+                        'required_skills': internship['required_skills'],
+                        'posted_at': internship['posted_at'],
+                        'company_name': company_name,
+                        'company_id': internship['company_id'],
+                        'similarity': similarity,
+                        'type': 'Collaborative'
+                    })
+                    seen_internships.add(internship_id)
+    
+    return recommendations[:20]  # Return more recommendations for evaluation
+
+
 def evaluate_collaborative_filtering(
     conn: sqlite3.Connection,
     user_ids: List[int],
     ground_truth: Dict[int, List[int]],
-    k_values: List[int] = [5, 10, 20]
+    k_values: List[int] = [5, 10, 20],
+    test_split_ratio: float = 0.2
 ) -> Dict[str, Dict[int, float]]:
     """
-    Evaluate Collaborative Filtering algorithm.
+    Evaluate Collaborative Filtering algorithm using train/test split.
+    
+    For collaborative filtering, we use a train/test split approach:
+    - Training set: Part of user's applications (used to find similar students)
+    - Test set: Remaining applications (what we try to predict)
+    - Recommendations are compared against the test set
+    
+    Args:
+        conn: Database connection
+        user_ids: List of user IDs to evaluate
+        ground_truth: Dictionary mapping user_id to list of applied internship IDs
+        k_values: List of K values for evaluation
+        test_split_ratio: Ratio of applications to use as test set (default 0.2 = 20%)
     
     Returns:
         Dictionary with metrics: {'precision': {k: score}, 'recall': {k: score}, ...}
     """
+    import random
+    random.seed(42)  # For reproducibility
+    
     cursor = conn.cursor()
     cursor.row_factory = sqlite3.Row
     
@@ -359,18 +461,35 @@ def evaluate_collaborative_filtering(
     }
     
     recommendations = {}
+    test_ground_truth = {}
     
     for user_id in user_ids:
         if user_id not in ground_truth:
             continue
         
-        # Get collaborative filtering recommendations
+        user_applications = ground_truth[user_id]
+        
+        # Skip users with too few applications (need at least 2 for train/test split)
+        if len(user_applications) < 2:
+            continue
+        
+        # Split applications into train and test sets
+        shuffled_apps = user_applications.copy()
+        random.shuffle(shuffled_apps)
+        
+        test_size = max(1, int(len(shuffled_apps) * test_split_ratio))
+        test_set = set(shuffled_apps[:test_size])
+        train_set = set(shuffled_apps[test_size:])
+        
+        # Get collaborative filtering recommendations using training set only
         try:
-            recs = collaborative_filtering(user_id, cursor)
+            recs = collaborative_filtering_for_evaluation(user_id, cursor, excluded_applications=test_set)
             recommended_ids = [rec['id'] for rec in recs]
             recommendations[user_id] = recommended_ids
             
-            relevant_ids = ground_truth[user_id]
+            # Use test set as ground truth (what we're trying to predict)
+            test_ground_truth[user_id] = list(test_set)
+            relevant_ids = list(test_set)
             
             # Calculate metrics for each k
             for k in k_values:
@@ -383,10 +502,12 @@ def evaluate_collaborative_filtering(
                 results['ndcg'][k].append(ndcg)
         except Exception as e:
             print(f"Error evaluating collaborative for user {user_id}: {e}")
+            import traceback
+            traceback.print_exc()
             continue
     
-    # Calculate MAP
-    results['map'] = calculate_map(recommendations, ground_truth, k_values)
+    # Calculate MAP using test set as ground truth
+    results['map'] = calculate_map(recommendations, test_ground_truth, k_values)
     
     # Average metrics across users
     final_results = {}
